@@ -1,6 +1,8 @@
 import PixabayApiService from "./js/pixabay-service";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const refs = {
   searchFormEl: document.querySelector(".search-form"),
@@ -9,6 +11,8 @@ const refs = {
 };
 
 const pixabayApiService = new PixabayApiService();
+
+let lightbox = new SimpleLightbox(".gallery a");
 
 refs.searchFormEl.addEventListener("submit", onSearch);
 refs.loadMoreBtnEl.addEventListener("click", onLoadMore);
@@ -40,7 +44,7 @@ async function onSearch(e) {
 }
 
 async function onLoadMore() {
-  await pixabayApiService.fetchImg().then(appendPhotoCardMarkup);
+  await pixabayApiService.fetchImg().then(appendPhotoCardMarkup);  
   const hits = await pixabayApiService.fetchImg();
   const hitsLength = hits.data.hits.length;
 
@@ -52,30 +56,33 @@ async function onLoadMore() {
 }
 
 function appendPhotoCardMarkup(getImg) {
-  console.log(getImg.data.hits)
   const img = getImg.data.hits;
+  console.log(img)
 
-  const photoCardMarkup = img.map(({ webformatURL, tags, likes, views, comments, downloads }) => `
-    <div class='photo-card'>
-      <img src='${webformatURL}' alt='${tags}' loading='lazy' width='356' height='200' />
-      <div class='info'>
-        <p class='info-item'>
-          <b>Likes </br><span class='info-data'>${likes}</span></b>
+  const photoCardMarkup = img.map(({ largeImageURL, webformatURL, tags, likes, views, comments, downloads }) => `
+    <div class="photo-card">
+      <a class="photo-link" href="${largeImageURL}">
+        <img src="${webformatURL}" alt="${tags}" loading="lazy" width="356" height="200" />
+      </a>  
+      <div class="info">
+        <p class="info-item">
+          <b>Likes </br><span class="info-data">${likes}</span></b>
         </p>
-        <p class='info-item'>
-          <b>Views </br><span class='info-data'>${views}</span></b>
+        <p class="info-item">
+          <b>Views </br><span class="info-data">${views}</span></b>
         </p>
-        <p class='info-item'>
-          <b>Comments </br><span class='info-data'>${comments}</span></b>
+        <p class="info-item">
+          <b>Comments </br><span class="info-data">${comments}</span></b>
         </p>
-        <p class='info-item'>
-          <b>Downloads </br><span class='info-data'>${downloads}</span></b>
+        <p class="info-item">
+          <b>Downloads </br><span class="info-data">${downloads}</span></b>
         </p>
-      </div>
+      </div>      
     </div>
   `).join("");
 
   refs.galleryEl.insertAdjacentHTML("beforeend", photoCardMarkup);
+  lightbox.refresh(); 
 }
 
 function clearPhotoCardGallery() {
