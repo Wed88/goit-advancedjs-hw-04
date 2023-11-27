@@ -14,7 +14,6 @@ export default class PixabayApiService {
       `/?key=${keyApi}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.page}`,
     );
 
-    this.incrementPage();
     return getImg;
   }
 

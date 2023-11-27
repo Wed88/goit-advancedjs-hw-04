@@ -21,9 +21,16 @@ refs.loadMoreBtnEl.classList.add("is-hidden");
 
 async function onSearch(e) {
   e.preventDefault();
-  pixabayApiService.searchQuery = e.currentTarget.elements.searchQuery.value;
+  pixabayApiService.searchQuery = e.currentTarget.elements.searchQuery.value.trim().toLowerCase();
+  if (pixabayApiService.searchQuery === "") {
+    await clearPhotoCardGallery();
+    await refs.loadMoreBtnEl.classList.add("is-hidden");
+    iziToast.info({ message: "please enter your request." });
+    return;
+  }
 
   await refs.loadMoreBtnEl.classList.add("is-hidden");
+  await pixabayApiService.resetPage();
 
   const hits = await pixabayApiService.fetchImg();
   const totalHits = hits.data.totalHits;
@@ -34,20 +41,21 @@ async function onSearch(e) {
     iziToast.error({message: "Sorry, there are no images matching your search query. Please try again."});
     return;
   }
-
+  
   await clearPhotoCardGallery();
-
-  await pixabayApiService.resetPage();
-  await pixabayApiService.fetchImg().then(appendPhotoCardMarkup);
+  await appendPhotoCardMarkup(hits);
   await refs.loadMoreBtnEl.classList.remove("is-hidden");
   iziToast.success({message: `Hooray! We found ${totalHits} images.`});
 }
 
 async function onLoadMore() {
-  await pixabayApiService.fetchImg().then(appendPhotoCardMarkup);  
+  await pixabayApiService.incrementPage();
+
   const hits = await pixabayApiService.fetchImg();
   const hitsLength = hits.data.hits.length;
-
+  
+  await appendPhotoCardMarkup(hits);  
+  
   if (hitsLength < 40) {
     refs.loadMoreBtnEl.classList.add("is-hidden");
     iziToast.info({message: "We're sorry, but you've reached the end of search results."});
@@ -57,7 +65,6 @@ async function onLoadMore() {
 
 function appendPhotoCardMarkup(getImg) {
   const img = getImg.data.hits;
-  console.log(img)
 
   const photoCardMarkup = img.map(({ largeImageURL, webformatURL, tags, likes, views, comments, downloads }) => `
     <div class="photo-card">
@@ -87,4 +94,5 @@ function appendPhotoCardMarkup(getImg) {
 
 function clearPhotoCardGallery() {
   refs.galleryEl.innerHTML = "";
+  // pixabayApiService.resetSearchQuery();
 }
